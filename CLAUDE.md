@@ -13,10 +13,17 @@ Result: BlueIris closes the socket after 10s silence → "Connection socket has 
 
 ## Architecture (keep it small)
 
-- `PlayerActivity` — fullscreen activity, `PlayerView` + `ExoPlayer` with `RtspMediaSource`. Listens to `onPlayerError` and `onPlaybackStateChanged`; on error/STATE_ENDED schedules a reconnect with linear backoff (capped at 30s).
-- `SettingsActivity` — four inputs: URL, TCP/UDP radio, reconnect delay, autostart checkbox. No validation beyond integer parsing.
+- `PlayerActivity` — fullscreen activity, `PlayerView` + `ExoPlayer` with `RtspMediaSource`. Two watchdogs keep the stream alive:
+  - **Connect watchdog** (`CONNECT_WATCHDOG_MS = 15s`): if `STATE_READY` isn't reached within 15s of `prepare()`, force a reconnect. Catches servers that accept TCP but never send SDP.
+  - **Frozen-stream watchdog** (`FROZEN_STREAM_WATCHDOG_MS = 10s`): once in `STATE_READY`, polls `player.currentPosition` every 2s; if position hasn't advanced for 10s while `isPlaying`, force a reconnect. Catches "socket open, RTP stopped flowing" — which ExoPlayer does NOT surface as an error.
+  - `onPlayerError` / `STATE_ENDED` schedule a reconnect with linear backoff capped at 30s. Attempt counter resets only on `STATE_READY`.
+- `SettingsActivity` — four inputs: URL, TCP/UDP radio, reconnect delay, autostart checkbox. Validation in `Prefs.save` (URL scheme + length); surfaces Toast on bad input.
 - `Prefs` — thin `SharedPreferences` wrapper returning an immutable `StreamConfig` data class.
-- `BootReceiver` — launches `PlayerActivity` on `BOOT_COMPLETED` if `autoStart && url.isNotBlank()`.
+- `BootReceiver` — launches `PlayerActivity` on `BOOT_COMPLETED` if `autoStart && url.isNotBlank()`. Guarded by `android:permission="RECEIVE_BOOT_COMPLETED"` so only the system fires it.
+
+**Settings entry points:**
+- Touch devices: long-press anywhere on the video
+- Android TV: `MENU` key, `SETTINGS` key, or long-press `DPAD_CENTER` / `ENTER`. A 4-second hint appears on startup and whenever any D-pad key is pressed.
 
 Do not add a camera-list DB, multi-stream grid, or foreground service. The whole point is single-stream simplicity. If scope grows, create a new app.
 

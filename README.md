@@ -11,9 +11,14 @@ headers, so the server drops the socket.
 
 - Single configurable RTSP stream, fullscreen, landscape-locked
 - Media3 ExoPlayer 1.4.x RTSP source — proper `OPTIONS` → Digest auth → SETUP → PLAY
-- Aggressive auto-reconnect with linear backoff (cap 30s)
+- **Two reliability watchdogs**:
+  - *Connect watchdog*: reconnect if `STATE_READY` isn't reached within 15s
+  - *Frozen-stream watchdog*: reconnect if playback position doesn't advance for 10s while supposedly playing (catches the "socket open, server stopped sending RTP" failure mode)
+- Linear backoff auto-reconnect capped at 30s, with live countdown + attempt counter
 - Keeps screen on, immersive full-screen, no on-screen controls
-- Long-press (touch devices) to open settings
+- **Settings access**:
+  - Touch devices: long-press the screen
+  - Android TV: press **MENU** on the remote, or **long-press OK** on D-pad (hint shown on startup)
 - Auto-start on device boot (toggle)
 - Adaptive launcher icon + Android TV Leanback banner
 

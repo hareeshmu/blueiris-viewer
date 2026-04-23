@@ -25,4 +25,21 @@
         android:background="#80000000"
         android:padding="12dp"
         android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/hint_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="@string/hint_tv_settings"
+        android:textColor="#EEEEEE"
+        android:textSize="14sp"
+        android:background="#AA000000"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:visibility="gone" />
 </FrameLayout>

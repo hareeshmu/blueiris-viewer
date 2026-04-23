@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.GestureDetector
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
@@ -24,12 +25,16 @@ import androidx.media3.ui.PlayerView
 class PlayerActivity : AppCompatActivity() {
 
     companion object {
-        private const val CONNECT_WATCHDOG_MS = 15_000L  // reach STATE_READY within this, else retry
+        private const val CONNECT_WATCHDOG_MS = 15_000L
+        private const val FROZEN_STREAM_WATCHDOG_MS = 10_000L
+        private const val FRAME_CHECK_INTERVAL_MS = 2_000L
         private const val MAX_BACKOFF_SECONDS = 30
+        private const val SETTINGS_HINT_DURATION_MS = 4_000L
     }
 
     private lateinit var playerView: PlayerView
     private lateinit var statusText: TextView
+    private lateinit var hintText: TextView
     private lateinit var rootView: FrameLayout
     private var player: ExoPlayer? = null
 
@@ -38,6 +43,11 @@ class PlayerActivity : AppCompatActivity() {
     private var pendingReconnect: Runnable? = null
     private var connectWatchdog: Runnable? = null
     private var countdownTicker: Runnable? = null
+    private var frameWatchdog: Runnable? = null
+    private var hintHide: Runnable? = null
+
+    private var lastKnownPositionMs = 0L
+    private var lastPositionAdvanceAt = 0L
 
     private lateinit var gestures: GestureDetector
 
@@ -48,6 +58,7 @@ class PlayerActivity : AppCompatActivity() {
 
         playerView = findViewById(R.id.player_view)
         statusText = findViewById(R.id.status_text)
+        hintText = findViewById(R.id.hint_text)
         rootView = findViewById(R.id.root)
 
         gestures = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
@@ -65,12 +76,37 @@ class PlayerActivity : AppCompatActivity() {
         super.onStart()
         hideSystemBars()
         startPlayback()
+        showSettingsHint()
     }
 
     override fun onStop() {
         super.onStop()
         cancelAllTimers()
         releasePlayer()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        // TV remote: MENU or long-press OK → Settings. Any D-pad press reveals the hint.
+        when (keyCode) {
+            KeyEvent.KEYCODE_MENU,
+            KeyEvent.KEYCODE_BUTTON_MODE,
+            KeyEvent.KEYCODE_SETTINGS -> {
+                openSettings()
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                if (event.isLongPress) {
+                    openSettings()
+                    return true
+                }
+                showSettingsHint()
+            }
+            KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
+            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                showSettingsHint()
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     private fun startPlayback() {
@@ -102,6 +138,7 @@ class PlayerActivity : AppCompatActivity() {
                         reconnectAttempt = 0
                         cancelConnectWatchdog()
                         hideStatus()
+                        startFrameWatchdog()
                     }
                     Player.STATE_ENDED -> scheduleReconnect("stream ended")
                     Player.STATE_BUFFERING, Player.STATE_IDLE -> Unit
@@ -131,6 +168,46 @@ class PlayerActivity : AppCompatActivity() {
     private fun cancelConnectWatchdog() {
         connectWatchdog?.let { handler.removeCallbacks(it) }
         connectWatchdog = null
+    }
+
+    /**
+     * Watches for "ExoPlayer in STATE_READY but the stream isn't advancing" —
+     * i.e. server stopped sending RTP while the TCP socket stays open, which
+     * ExoPlayer doesn't detect as an error. Polls the player's current
+     * position and schedules a reconnect if it hasn't advanced in
+     * FROZEN_STREAM_WATCHDOG_MS.
+     */
+    private fun startFrameWatchdog() {
+        cancelFrameWatchdog()
+        lastKnownPositionMs = player?.currentPosition ?: 0L
+        lastPositionAdvanceAt = System.currentTimeMillis()
+
+        val tick = object : Runnable {
+            override fun run() {
+                val p = player ?: return
+                if (p.playbackState != Player.STATE_READY || !p.isPlaying) {
+                    handler.postDelayed(this, FRAME_CHECK_INTERVAL_MS)
+                    return
+                }
+                val now = System.currentTimeMillis()
+                val pos = p.currentPosition
+                if (pos != lastKnownPositionMs) {
+                    lastKnownPositionMs = pos
+                    lastPositionAdvanceAt = now
+                } else if (now - lastPositionAdvanceAt >= FROZEN_STREAM_WATCHDOG_MS) {
+                    scheduleReconnect("watchdog: stream frozen")
+                    return
+                }
+                handler.postDelayed(this, FRAME_CHECK_INTERVAL_MS)
+            }
+        }
+        frameWatchdog = tick
+        handler.postDelayed(tick, FRAME_CHECK_INTERVAL_MS)
+    }
+
+    private fun cancelFrameWatchdog() {
+        frameWatchdog?.let { handler.removeCallbacks(it) }
+        frameWatchdog = null
     }
 
     private fun scheduleReconnect(reason: String) {
@@ -174,6 +251,7 @@ class PlayerActivity : AppCompatActivity() {
         countdownTicker?.let { handler.removeCallbacks(it) }
         countdownTicker = null
         cancelConnectWatchdog()
+        cancelFrameWatchdog()
     }
 
     private fun releasePlayer() {
@@ -195,6 +273,14 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun hideStatus() {
         statusText.visibility = View.GONE
+    }
+
+    private fun showSettingsHint() {
+        hintText.visibility = View.VISIBLE
+        hintHide?.let { handler.removeCallbacks(it) }
+        val r = Runnable { hintText.visibility = View.GONE }
+        hintHide = r
+        handler.postDelayed(r, SETTINGS_HINT_DURATION_MS)
     }
 
     private fun openSettings() {
