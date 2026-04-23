@@ -7,8 +7,11 @@
 #   scripts/deploy.sh 192.168.1.50:36623 G
 #   scripts/deploy.sh 192.168.1.51:5555          # uses BI_DEFAULT_PATH from .env
 #
-# Requires: adb on PATH, APK at app/build/outputs/apk/debug/app-debug.apk,
+# Requires: adb on PATH, an APK (debug by default, override with APK env var),
 #           .env file at repo root (copy from .env.example).
+#
+# Override APK (e.g., to deploy a signed release pulled from GitHub):
+#   APK=/tmp/blueiris-viewer-v0.2.0.apk scripts/deploy.sh 10.0.0.5:5555 G
 
 set -euo pipefail
 
@@ -16,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 ENV_FILE="$REPO_ROOT/.env"
-APK="$REPO_ROOT/app/build/outputs/apk/debug/app-debug.apk"
+APK="${APK:-$REPO_ROOT/app/build/outputs/apk/debug/app-debug.apk}"
 PKG="com.hareesh.blueirisviewer"
 
 if [[ ! -f "$ENV_FILE" ]]; then
@@ -49,22 +52,16 @@ echo "→ Stream URL:    rtsp://${BI_USER}:***@${BI_HOST}:${BI_PORT}/${STREAM_PA
 echo "→ Installing APK..."
 adb -s "$DEVICE" install -r "$APK"
 
-PREFS="<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>
-<map>
-    <string name=\"url\">${URL}</string>
-    <boolean name=\"transport_tcp\" value=\"true\" />
-    <int name=\"reconnect_seconds\" value=\"${RECONNECT_SECONDS}\" />
-    <boolean name=\"autostart\" value=\"${AUTOSTART}\" />
-</map>"
-
-echo "→ Pushing prefs..."
+echo "→ Configuring + launching via intent extras..."
 adb -s "$DEVICE" shell "am force-stop $PKG"
-# Pipe prefs straight into run-as — avoids staging the password in
-# world-readable /data/local/tmp.
-printf '%s' "$PREFS" | adb -s "$DEVICE" shell "run-as $PKG sh -c 'mkdir -p shared_prefs && cat > shared_prefs/blueiris-viewer.xml'"
-
-echo "→ Launching..."
-adb -s "$DEVICE" shell "am start -n $PKG/.PlayerActivity"
+# PlayerActivity reads these extras on launch and writes them to SharedPreferences.
+# Works for both debug and release builds (no run-as needed).
+adb -s "$DEVICE" shell am start \
+    -n "$PKG/.PlayerActivity" \
+    --es url "'$URL'" \
+    --ez transport_tcp true \
+    --ei reconnect_seconds "$RECONNECT_SECONDS" \
+    --ez autostart "$AUTOSTART"
 
 echo "Done. Check the device screen. Watch RTSP handshake:"
 echo "  adb -s $DEVICE logcat | grep -E 'RtspClient|BlueIrisViewer'"

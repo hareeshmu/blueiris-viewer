@@ -70,6 +70,18 @@ class PlayerActivity : AppCompatActivity() {
             gestures.onTouchEvent(ev)
             true
         }
+
+        applyIntentConfig(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (applyIntentConfig(intent)) {
+            // Config changed — restart playback from scratch so the new URL is used.
+            reconnectAttempt = 0
+            startPlayback()
+        }
     }
 
     override fun onStart() {
@@ -77,6 +89,44 @@ class PlayerActivity : AppCompatActivity() {
         hideSystemBars()
         startPlayback()
         showSettingsHint()
+    }
+
+    /**
+     * Reads stream config from intent extras (used by scripts/deploy.sh):
+     *   --es url "rtsp://..."  --ez transport_tcp true
+     *   --ei reconnect_seconds 3  --ez autostart true
+     * Returns true if any value was changed and written to prefs.
+     */
+    private fun applyIntentConfig(intent: Intent?): Boolean {
+        val extras = intent?.extras ?: return false
+        if (!extras.containsKey("url") &&
+            !extras.containsKey("transport_tcp") &&
+            !extras.containsKey("reconnect_seconds") &&
+            !extras.containsKey("autostart")
+        ) return false
+
+        val current = Prefs.load(this)
+        val next = StreamConfig(
+            url = extras.getString("url") ?: current.url,
+            preferTcp = if (extras.containsKey("transport_tcp"))
+                extras.getBoolean("transport_tcp") else current.preferTcp,
+            reconnectSeconds = if (extras.containsKey("reconnect_seconds"))
+                extras.getInt("reconnect_seconds") else current.reconnectSeconds,
+            autoStart = if (extras.containsKey("autostart"))
+                extras.getBoolean("autostart") else current.autoStart,
+        )
+        if (next == current) return false
+
+        return try {
+            Prefs.save(this, next)
+            android.util.Log.i("BlueIrisViewer", "config applied from intent extras")
+            // Consume the extras so restarts / process deaths don't replay them.
+            intent.replaceExtras(Bundle())
+            true
+        } catch (e: IllegalArgumentException) {
+            android.util.Log.w("BlueIrisViewer", "intent config rejected: ${e.message}")
+            false
+        }
     }
 
     override fun onStop() {
