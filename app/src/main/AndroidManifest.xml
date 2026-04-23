@@ -38,7 +38,7 @@
             android:label="@string/settings_title"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
-            android:theme="@style/Theme.AppCompat.DayNight" />
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
 
         <receiver
             android:name=".BootReceiver"
