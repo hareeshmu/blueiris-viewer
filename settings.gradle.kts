@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "blueiris-viewer"
+rootProject.name = "rtsp-live"
 include(":app")

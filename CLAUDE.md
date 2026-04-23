@@ -1,4 +1,4 @@
-# blueiris-viewer — project notes for Claude
+# rtsp-live — project notes for Claude
 
 Minimal Android app: single configurable RTSP stream, fullscreen, auto-reconnect. Built to replace Onvifer on the user's tablets + TCL Android TVs that monitor BlueIris DVR cameras.
 
@@ -36,9 +36,9 @@ Do not add a camera-list DB, multi-stream grid, or foreground service. The whole
 
 ## Pre-seeding prefs for fleet deploy
 
-Writing SharedPreferences from adb is the trick that makes deploying to many devices painless. The app is debug-signed, so `run-as com.hareesh.blueirisviewer` works. See README "Pre-seed" section for the full incantation.
+Writing SharedPreferences from adb is the trick that makes deploying to many devices painless. The app is debug-signed, so `run-as com.hareesh.rtsplive` works. See README "Pre-seed" section for the full incantation.
 
-Prefs XML lives at `/data/data/com.hareesh.blueirisviewer/shared_prefs/blueiris-viewer.xml`. Keys: `url` (string), `transport_tcp` (bool), `reconnect_seconds` (int), `autostart` (bool). Keep these exact names — `Prefs.kt` reads them verbatim.
+Prefs XML lives at `/data/data/com.hareesh.rtsplive/shared_prefs/rtsp-live.xml`. Keys: `url` (string), `transport_tcp` (bool), `reconnect_seconds` (int), `autostart` (bool). Keep these exact names — `Prefs.kt` reads them verbatim.
 
 ## BlueIris environment assumptions
 

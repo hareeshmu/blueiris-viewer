@@ -1,4 +1,4 @@
-package com.hareesh.blueirisviewer
+package com.hareesh.rtsplive
 
 import android.content.BroadcastReceiver
 import android.content.Context

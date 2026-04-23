@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">BlueIris Viewer</string>
+    <string name="app_name">RTSP Live</string>
     <string name="settings_title">Settings</string>
     <string name="hint_url">rtsp://user:pass@host:port/path</string>
     <string name="label_url">Stream URL</string>

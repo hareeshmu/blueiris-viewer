@@ -1,4 +1,4 @@
-package com.hareesh.blueirisviewer
+package com.hareesh.rtsplive
 
 import android.content.Intent
 import android.os.Build
@@ -119,12 +119,12 @@ class PlayerActivity : AppCompatActivity() {
 
         return try {
             Prefs.save(this, next)
-            android.util.Log.i("BlueIrisViewer", "config applied from intent extras")
+            android.util.Log.i("RtspLive", "config applied from intent extras")
             // Consume the extras so restarts / process deaths don't replay them.
             intent.replaceExtras(Bundle())
             true
         } catch (e: IllegalArgumentException) {
-            android.util.Log.w("BlueIrisViewer", "intent config rejected: ${e.message}")
+            android.util.Log.w("RtspLive", "intent config rejected: ${e.message}")
             false
         }
     }
@@ -261,7 +261,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun scheduleReconnect(reason: String) {
-        android.util.Log.i("BlueIrisViewer", "reconnect scheduled: $reason")
+        android.util.Log.i("RtspLive", "reconnect scheduled: $reason")
         val cfg = Prefs.load(this)
         reconnectAttempt++
         val base = cfg.reconnectSeconds.coerceAtLeast(1)

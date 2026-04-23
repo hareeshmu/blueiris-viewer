@@ -1,11 +1,16 @@
-# BlueIris Viewer
+# RTSP Live
 
-Minimal always-on RTSP viewer for BlueIris camera/group streams. Single APK
-targets Android phones, tablets, and Android TV.
+Minimal always-on RTSP viewer for Android phones, tablets, and Android TV.
+Point it at any RTSP stream — Blue Iris, Hikvision, Dahua, Amcrest, Reolink,
+UniFi Protect, MotionEye, Frigate, or any generic ONVIF/IP camera — and it
+plays it full-screen with aggressive auto-reconnect. No cloud, no account,
+no ads.
 
-Built because Onvifer Pro (21.53) broke after BlueIris 6's upgrade — it never
-sends `OPTIONS` before `DESCRIBE` and never computes Digest `Authorization`
-headers, so the server drops the socket.
+Originally built after Onvifer Pro (21.53) broke against Blue Iris 6's
+upgraded RTSP server — Onvifer never sends `OPTIONS` before `DESCRIBE` and
+never computes Digest `Authorization` headers, so the server drops the
+socket. This app uses Google's Media3 ExoPlayer, which handles the full
+RTSP handshake including Digest auth correctly.
 
 ## Screenshots
 
@@ -53,7 +58,7 @@ export PATH="$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME
 ## Build
 
 ```bash
-cd ~/Workbench/blueiris-viewer
+cd ~/Workbench/rtsp-live
 ./gradlew assembleDebug
 ```
 
@@ -116,13 +121,13 @@ the RTSP trace command to tail.
 
 ### Launching
 
-- **Touchscreen (phone/tablet)**: app drawer → BlueIris Viewer (dark-blue camera icon). Long-press on the home screen to pin.
-- **Android TV (TCL etc.)**: Home → Apps row → scroll to BlueIris Viewer banner. If it's not on the row, *See all apps* → select it → *Add to Home*. Alternatively: *Settings → Apps → BlueIris Viewer → Open*.
+- **Touchscreen (phone/tablet)**: app drawer → RTSP Live (dark-blue camera icon). Long-press on the home screen to pin.
+- **Android TV (TCL etc.)**: Home → Apps row → scroll to RTSP Live banner. If it's not on the row, *See all apps* → select it → *Add to Home*. Alternatively: *Settings → Apps → RTSP Live → Open*.
 
 ### Change settings later
 
 - Touch devices: long-press anywhere on the video → Settings opens
-- Android TV: `adb shell am start -n com.hareesh.blueirisviewer/.SettingsActivity` (until a D-pad settings entry is added)
+- Android TV: `adb shell am start -n com.hareesh.rtsplive/.SettingsActivity` (until a D-pad settings entry is added)
 
 ## BlueIris gotchas (hard-won)
 
@@ -162,7 +167,7 @@ Watch the app's RTSP conversation:
 
 ```bash
 adb -s <device> logcat -c
-adb -s <device> shell am start -n com.hareesh.blueirisviewer/.PlayerActivity
+adb -s <device> shell am start -n com.hareesh.rtsplive/.PlayerActivity
 adb -s <device> logcat | grep RtspClient
 ```
 
@@ -173,7 +178,7 @@ Expected progression: `OPTIONS` → `DESCRIBE` → `401` with Digest → retry D
 ```
 app/src/main/
 ├── AndroidManifest.xml              # Leanback + LAUNCHER categories, cleartextTraffic allowed
-├── java/com/hareesh/blueirisviewer/
+├── java/com.hareesh.rtsplive/
 │   ├── PlayerActivity.kt            # ExoPlayer RTSP, fullscreen, auto-reconnect loop
 │   ├── SettingsActivity.kt          # URL / TCP-UDP / reconnect delay / autostart
 │   ├── Prefs.kt                     # SharedPreferences wrapper
@@ -185,7 +190,7 @@ app/src/main/
     └── mipmap-anydpi-v26/           # adaptive icon definitions
 ```
 
-Prefs file on device: `/data/data/com.hareesh.blueirisviewer/shared_prefs/blueiris-viewer.xml`
+Prefs file on device: `/data/data/com.hareesh.rtsplive/shared_prefs/rtsp-live.xml`
 
 ## TODO (future work)
 

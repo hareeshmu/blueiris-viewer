@@ -15,15 +15,15 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.hareesh.blueirisviewer"
+    namespace = "com.hareesh.rtsplive"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.hareesh.blueirisviewer"
+        applicationId = "com.hareesh.rtsplive"
         minSdk = 23
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = 4
+        versionName = "1.0.0"
     }
 
     signingConfigs {

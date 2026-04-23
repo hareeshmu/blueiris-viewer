@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install + pre-seed blueiris-viewer on an Android device.
+# Install + pre-seed rtsp-live on an Android device.
 #
 # Usage:
 #   scripts/deploy.sh <adb-device-id> [stream-path]
@@ -11,7 +11,7 @@
 #           .env file at repo root (copy from .env.example).
 #
 # Override APK (e.g., to deploy a signed release pulled from GitHub):
-#   APK=/tmp/blueiris-viewer-v0.2.0.apk scripts/deploy.sh 10.0.0.5:5555 G
+#   APK=/tmp/rtsp-live-v0.2.0.apk scripts/deploy.sh 10.0.0.5:5555 G
 
 set -euo pipefail
 
@@ -20,7 +20,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 ENV_FILE="$REPO_ROOT/.env"
 APK="${APK:-$REPO_ROOT/app/build/outputs/apk/debug/app-debug.apk}"
-PKG="com.hareesh.blueirisviewer"
+PKG="com.hareesh.rtsplive"
 
 if [[ ! -f "$ENV_FILE" ]]; then
     echo "Error: $ENV_FILE not found. Copy .env.example to .env and fill in values." >&2

@@ -1,4 +1,4 @@
-package com.hareesh.blueirisviewer
+package com.hareesh.rtsplive
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -11,7 +11,7 @@ data class StreamConfig(
 )
 
 object Prefs {
-    private const val FILE = "blueiris-viewer"
+    private const val FILE = "rtsp-live"
     private const val KEY_URL = "url"
     private const val KEY_TRANSPORT_TCP = "transport_tcp"
     private const val KEY_RECONNECT = "reconnect_seconds"

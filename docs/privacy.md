@@ -1,17 +1,17 @@
 ---
-title: Privacy Policy — BlueIris Viewer
+title: Privacy Policy — RTSP Live
 ---
 
-# Privacy Policy — BlueIris Viewer
+# Privacy Policy — RTSP Live
 
 _Last updated: 2026-04-23_
 
-**BlueIris Viewer does not collect, store, transmit, or share any personal
+**RTSP Live does not collect, store, transmit, or share any personal
 data, usage analytics, diagnostics, location, or device identifiers.**
 
 ## What the app does
 
-BlueIris Viewer is a single-stream RTSP video player. It connects only to the
+RTSP Live is a single-stream RTSP video player. It connects only to the
 server (URL) you configure in the app's Settings screen. All video data flows
 directly between your device and that server over your local network or your
 own internet connection — it does not pass through any server operated by the
@@ -54,11 +54,11 @@ anyone. In fact, it does not collect any data from anyone.
 ## Open source
 
 The app is open source under the MIT License. Source is public at
-<https://github.com/hareeshmu/blueiris-viewer> — you can audit exactly what
+<https://github.com/hareeshmu/rtsp-live> — you can audit exactly what
 the app does.
 
 ## Contact
 
 Questions or concerns: open an issue at
-<https://github.com/hareeshmu/blueiris-viewer/issues> or email the address
+<https://github.com/hareeshmu/rtsp-live/issues> or email the address
 listed on the repository.
