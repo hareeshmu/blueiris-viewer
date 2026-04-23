@@ -1,0 +1,176 @@
+# BlueIris Viewer
+
+Minimal always-on RTSP viewer for BlueIris camera/group streams. Single APK
+targets Android phones, tablets, and Android TV.
+
+Built because Onvifer Pro (21.53) broke after BlueIris 6's upgrade — it never
+sends `OPTIONS` before `DESCRIBE` and never computes Digest `Authorization`
+headers, so the server drops the socket.
+
+## Features
+
+- Single configurable RTSP stream, fullscreen, landscape-locked
+- Media3 ExoPlayer 1.4.x RTSP source — proper `OPTIONS` → Digest auth → SETUP → PLAY
+- Aggressive auto-reconnect with linear backoff (cap 30s)
+- Keeps screen on, immersive full-screen, no on-screen controls
+- Long-press (touch devices) to open settings
+- Auto-start on device boot (toggle)
+- Adaptive launcher icon + Android TV Leanback banner
+
+## Prerequisites
+
+- JDK 17 (Android Studio bundles one at `/Applications/Android Studio.app/Contents/jbr`)
+- Android SDK with `platforms;android-34` and `build-tools;34.0.0`
+- ADB on your PATH
+
+Env vars the build expects:
+
+```bash
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+```
+
+## Build
+
+```bash
+cd ~/Workbench/blueiris-viewer
+./gradlew assembleDebug
+```
+
+APK lands at `app/build/outputs/apk/debug/app-debug.apk` (~9 MB).
+
+## Install on a device
+
+The app expects **Wireless debugging** (Android 11+) or **ADB over Wi-Fi** (older) enabled on the target device.
+
+### Android 11+ (wireless debugging with pairing)
+
+Tablet: *Settings → Developer options → Wireless debugging → ON* → tap *Pair device with pairing code* to get an IP:port and 6-digit code.
+
+```bash
+adb pair <tablet-ip>:<pair-port>  <code>
+adb connect <tablet-ip>:<connect-port>      # connect port shown at top of wireless debugging screen
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Older Android (port 5555 direct)
+
+Tablet: *Settings → Developer options → ADB over Wi-Fi → ON*. Then:
+
+```bash
+adb connect <tablet-ip>:5555
+# accept the RSA prompt on the device
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Deploy to a device (install + pre-seed config + launch)
+
+Credentials and host live in a gitignored `.env` file at the repo root. Copy
+the template once:
+
+```bash
+cp .env.example .env
+# edit .env: set BI_USER, BI_PASS, BI_HOST, optional BI_DEFAULT_PATH
+```
+
+Then for each device, build the APK once and deploy per-device:
+
+```bash
+./gradlew assembleDebug
+scripts/deploy.sh <adb-device-id> <stream-path>
+```
+
+Examples:
+
+```bash
+scripts/deploy.sh 192.168.1.50:36623 G         # Android 11+ wireless debug port
+scripts/deploy.sh 192.168.1.51:5555 FrontDoor  # Legacy ADB-over-Wi-Fi port 5555
+scripts/deploy.sh 192.168.1.52:5555            # uses BI_DEFAULT_PATH from .env
+```
+
+The script installs the APK, writes the app's SharedPreferences via `run-as`
+(works on debug builds without root), launches the PlayerActivity, and prints
+the RTSP trace command to tail.
+
+`<stream-path>` is your BlueIris camera **short name** (any alphanumeric — e.g.
+`G` for the group mosaic, or whatever short-names you've configured per camera).
+
+### Launching
+
+- **Touchscreen (phone/tablet)**: app drawer → BlueIris Viewer (dark-blue camera icon). Long-press on the home screen to pin.
+- **Android TV (TCL etc.)**: Home → Apps row → scroll to BlueIris Viewer banner. If it's not on the row, *See all apps* → select it → *Add to Home*. Alternatively: *Settings → Apps → BlueIris Viewer → Open*.
+
+### Change settings later
+
+- Touch devices: long-press anywhere on the video → Settings opens
+- Android TV: `adb shell am start -n com.hareesh.blueirisviewer/.SettingsActivity` (until a D-pad settings entry is added)
+
+## BlueIris gotchas (hard-won)
+
+1. **Webserver → Advanced → Method**: must be `Basic (plaintext)` or Digest.
+   `Secure login page only` **breaks RTSP entirely** — BlueIris tries to apply
+   HTML-cookie auth to every connection including RTSP, which can't fill an HTML
+   form. The server accepts the TCP socket and sends zero bytes.
+2. **Windows network profile must be "Private" on the BlueIris PC.** Even with
+   Windows Defender Firewall off, the "Public" profile silently drops inbound
+   LAN traffic from certain IPs (while others pass). Symptom: Mac can connect,
+   one tablet can't, on the same subnet. Fix: *Settings → Network & Internet →
+   (connection) → Network profile → Private*. Takes effect immediately.
+3. **BlueIris RTSP auth is always Digest**, regardless of the webserver auth
+   method. Any client that fails to compute Digest `Authorization` headers (like
+   Onvifer 21.53) will fail.
+4. **BlueIris sometimes flaps** into an unresponsive state where even Mac's
+   ffprobe gets silent drops. Restarting BlueIris (tray icon → Exit → relaunch)
+   clears it. `Max connections` defaults to 99; dropping to 20 reduces accumulation.
+5. **Stream URL format**: `rtsp://user:pass@host:81/<shortname>`. Port 81 is the
+   webserver port; RTSP is multiplexed on the same port. Use `/G` for the group
+   mosaic, or any individual camera short-name.
+
+## Troubleshooting
+
+Verify the server is talking to this device before blaming the app:
+
+```bash
+# From the device (via adb shell)
+printf 'OPTIONS rtsp://<host>:81/G RTSP/1.0\r\nCSeq: 1\r\n\r\n' | nc -w 3 <host> 81
+```
+
+Expect `RTSP/1.0 401 Unauthorized` + `WWW-Authenticate: Digest realm="BlueIris"`. Zero output = server-side filtering (see gotchas 1 and 2).
+
+Watch the app's RTSP conversation:
+
+```bash
+adb -s <device> logcat -c
+adb -s <device> shell am start -n com.hareesh.blueirisviewer/.PlayerActivity
+adb -s <device> logcat | grep RtspClient
+```
+
+Expected progression: `OPTIONS` → `DESCRIBE` → `401` with Digest → retry DESCRIBE with Authorization → `200 OK` + SDP → `SETUP` → `PLAY` → `200 OK`.
+
+## Project layout
+
+```
+app/src/main/
+├── AndroidManifest.xml              # Leanback + LAUNCHER categories, cleartextTraffic allowed
+├── java/com/hareesh/blueirisviewer/
+│   ├── PlayerActivity.kt            # ExoPlayer RTSP, fullscreen, auto-reconnect loop
+│   ├── SettingsActivity.kt          # URL / TCP-UDP / reconnect delay / autostart
+│   ├── Prefs.kt                     # SharedPreferences wrapper
+│   └── BootReceiver.kt              # Autostart on BOOT_COMPLETED
+└── res/
+    ├── layout/                      # activity_player, activity_settings
+    ├── values/                      # strings, themes (fullscreen)
+    ├── drawable/                    # ic_launcher_*, tv_banner (all vector)
+    └── mipmap-anydpi-v26/           # adaptive icon definitions
+```
+
+Prefs file on device: `/data/data/com.hareesh.blueirisviewer/shared_prefs/blueiris-viewer.xml`
+
+## TODO (future work)
+
+- D-pad settings entry for Android TV (3-second overlay button on startup)
+- Multiple stream URLs with D-pad / swipe to switch cameras
+- PTZ controls via BlueIris JSON API (`/admin?camera=X&ptz=N`)
+- Signed release APK so Android TV stops warning on sideload
+- Auto-update pipeline (F-Droid repo or direct APK URL)

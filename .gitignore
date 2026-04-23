@@ -1,0 +1,32 @@
+# Android / Gradle build outputs
+build/
+app/build/
+app/release/
+.gradle/
+.cxx/
+.externalNativeBuild/
+/captures
+
+# IDE / OS junk
+*.iml
+.idea/
+.kotlin/
+.DS_Store
+
+# SDK path (per-machine)
+local.properties
+
+# Build artifacts we never want in git
+*.apk
+*.aab
+*.log
+
+# Signing keys — NEVER commit
+*.keystore
+*.jks
+keystore.properties
+signing.properties
+
+# Local secrets / per-environment values
+.env
+fleet.md

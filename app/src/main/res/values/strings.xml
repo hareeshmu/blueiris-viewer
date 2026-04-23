@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BlueIris Viewer</string>
+    <string name="settings_title">Settings</string>
+    <string name="hint_url">rtsp://user:pass@host:port/path</string>
+    <string name="label_url">Stream URL</string>
+    <string name="label_transport">Transport</string>
+    <string name="label_reconnect">Reconnect delay (s)</string>
+    <string name="label_autostart">Auto-start on boot</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_play">Play</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_connecting_attempt">Connecting… (attempt %1$d)</string>
+    <string name="status_no_url">No stream URL configured. Long-press to open settings.</string>
+    <string name="status_reconnecting">Reconnecting in %1$ds… (attempt %2$d)</string>
+</resources>

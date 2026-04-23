@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- CCTV / security camera icon (simplified), centered in safe zone -->
+    <group android:translateX="22" android:translateY="30">
+        <!-- camera body -->
+        <path
+            android:pathData="M6,8 L44,8 A4,4 0 0 1 48,12 L48,28 A4,4 0 0 1 44,32 L24,32 L24,38 L30,38 L30,42 L10,42 L10,38 L16,38 L16,32 L6,32 A4,4 0 0 1 2,28 L2,12 A4,4 0 0 1 6,8 Z"
+            android:fillColor="#FFFFFF"/>
+        <!-- lens ring -->
+        <path
+            android:pathData="M38,20 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0 Z"
+            android:fillColor="#0D47A1"/>
+        <!-- lens inner -->
+        <path
+            android:pathData="M38,20 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 Z"
+            android:fillColor="#FFFFFF"/>
+        <!-- record dot -->
+        <path
+            android:pathData="M10,14 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z"
+            android:fillColor="#E53935"/>
+    </group>
+</vector>
