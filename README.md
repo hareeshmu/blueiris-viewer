@@ -1,5 +1,10 @@
 # RTSP Live
 
+
+<p align="center">
+  <img src="docs/play-assets/banner-original.png" alt="RTSP Live" width="720">
+</p>
+
 Minimal always-on RTSP viewer for Android phones, tablets, and Android TV.
 Point it at any RTSP stream — Blue Iris, Hikvision, Dahua, Amcrest, Reolink,
 UniFi Protect, MotionEye, Frigate, or any generic ONVIF/IP camera — and it
@@ -113,11 +118,9 @@ scripts/deploy.sh 192.168.1.51:5555 FrontDoor  # Legacy ADB-over-Wi-Fi port 5555
 scripts/deploy.sh 192.168.1.52:5555            # uses BI_DEFAULT_PATH from .env
 ```
 
-The script installs the APK, writes the app's SharedPreferences via `run-as`
-(works on debug builds without root), launches the PlayerActivity, and prints
-the RTSP trace command to tail.
+The script installs the APK, configures the stream via intent extras on launch (works on both debug and release builds — no `run-as` needed), and prints the RTSP trace command to tail.
 
-`<stream-path>` is any BlueIris **short name** — either a **camera short name** or a **group short name** (groups are multi-camera mosaics, configured under *Cameras → Add a group* in BlueIris). Any alphanumeric, e.g. `G`, `FrontYard`, `AllCameras`.
+`<stream-path>` is the camera or group short name on your RTSP server — e.g. `G` for a Blue Iris group mosaic, `FrontDoor`, `Driveway`, or whatever short name your DVR/NVR exposes.
 
 ### Launching
 
