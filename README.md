@@ -93,8 +93,7 @@ The script installs the APK, writes the app's SharedPreferences via `run-as`
 (works on debug builds without root), launches the PlayerActivity, and prints
 the RTSP trace command to tail.
 
-`<stream-path>` is your BlueIris camera **short name** (any alphanumeric — e.g.
-`G` for the group mosaic, or whatever short-names you've configured per camera).
+`<stream-path>` is any BlueIris **short name** — either a **camera short name** or a **group short name** (groups are multi-camera mosaics, configured under *Cameras → Add a group* in BlueIris). Any alphanumeric, e.g. `G`, `FrontYard`, `AllCameras`.
 
 ### Launching
 
@@ -123,9 +122,11 @@ the RTSP trace command to tail.
 4. **BlueIris sometimes flaps** into an unresponsive state where even Mac's
    ffprobe gets silent drops. Restarting BlueIris (tray icon → Exit → relaunch)
    clears it. `Max connections` defaults to 99; dropping to 20 reduces accumulation.
-5. **Stream URL format**: `rtsp://user:pass@host:81/<shortname>`. Port 81 is the
-   webserver port; RTSP is multiplexed on the same port. Use `/G` for the group
-   mosaic, or any individual camera short-name.
+5. **Stream URL format**: `rtsp://user:pass@host:81/<shortname>`, where
+   `<shortname>` is either a **camera short name** or a **group short name**
+   (BlueIris groups = multi-camera mosaic streams, configured under
+   *Cameras → Add a group*). Port 81 is the webserver port; RTSP is
+   multiplexed on the same port.
 
 ## Troubleshooting
 
