@@ -16,14 +16,14 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.hareesh.rtsplive"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.hareesh.rtsplive"
         minSdk = 23
-        targetSdk = 34
-        versionCode = 4
-        versionName = "1.0.0"
+        targetSdk = 35
+        versionCode = 5
+        versionName = "1.0.1"
     }
 
     signingConfigs {
