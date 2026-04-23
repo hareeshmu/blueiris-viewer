@@ -7,6 +7,14 @@ Built because Onvifer Pro (21.53) broke after BlueIris 6's upgrade — it never
 sends `OPTIONS` before `DESCRIBE` and never computes Digest `Authorization`
 headers, so the server drops the socket.
 
+## Screenshots
+
+<p>
+  <img src="docs/screenshots/settings.png" alt="Settings screen" width="640">
+</p>
+
+Settings screen (Android tablet). On the playback screen the video fills the display and there is no chrome — long-press (touch) or press MENU / long-press OK (TV remote) to return here.
+
 ## Features
 
 - Single configurable RTSP stream, fullscreen, landscape-locked
