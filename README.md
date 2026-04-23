@@ -10,10 +10,16 @@ headers, so the server drops the socket.
 ## Screenshots
 
 <p>
+  <img src="docs/screenshots/playing.png" alt="Playing a BlueIris group (4-camera mosaic)" width="640">
+</p>
+
+Playback screen — fullscreen, no chrome. This is a BlueIris group stream (`/G`) tiling four cameras into a single mosaic that BlueIris composes server-side. Long-press (touch) or press MENU / long-press OK (TV remote) to reach settings.
+
+<p>
   <img src="docs/screenshots/settings.png" alt="Settings screen" width="640">
 </p>
 
-Settings screen (Android tablet). On the playback screen the video fills the display and there is no chrome — long-press (touch) or press MENU / long-press OK (TV remote) to return here.
+Settings screen.
 
 ## Features
 
