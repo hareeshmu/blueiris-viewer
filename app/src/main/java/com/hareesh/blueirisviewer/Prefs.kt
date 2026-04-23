@@ -16,6 +16,7 @@ object Prefs {
     private const val KEY_TRANSPORT_TCP = "transport_tcp"
     private const val KEY_RECONNECT = "reconnect_seconds"
     private const val KEY_AUTOSTART = "autostart"
+    private const val MAX_URL_LEN = 1024
 
     private fun sp(ctx: Context): SharedPreferences =
         ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -31,8 +32,15 @@ object Prefs {
     }
 
     fun save(ctx: Context, cfg: StreamConfig) {
+        val url = cfg.url.trim()
+        require(url.length <= MAX_URL_LEN) {
+            "URL too long (max $MAX_URL_LEN chars)"
+        }
+        require(url.isEmpty() || url.startsWith("rtsp://") || url.startsWith("rtsps://")) {
+            "URL must start with rtsp:// or rtsps://"
+        }
         sp(ctx).edit()
-            .putString(KEY_URL, cfg.url.trim())
+            .putString(KEY_URL, url)
             .putBoolean(KEY_TRANSPORT_TCP, cfg.preferTcp)
             .putInt(KEY_RECONNECT, cfg.reconnectSeconds.coerceIn(1, 300))
             .putBoolean(KEY_AUTOSTART, cfg.autoStart)

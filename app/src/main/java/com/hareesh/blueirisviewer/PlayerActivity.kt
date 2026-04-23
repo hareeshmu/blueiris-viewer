@@ -92,7 +92,7 @@ class PlayerActivity : AppCompatActivity() {
         val source = RtspMediaSource.Factory()
             .setForceUseRtpTcp(cfg.preferTcp)
             .setTimeoutMs(10_000)
-            .setDebugLoggingEnabled(true)
+            .setDebugLoggingEnabled(BuildConfig.DEBUG)
             .createMediaSource(MediaItem.fromUri(cfg.url))
 
         p.addListener(object : Player.Listener {

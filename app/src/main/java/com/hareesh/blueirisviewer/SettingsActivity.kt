@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.RadioGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 class SettingsActivity : AppCompatActivity() {
@@ -26,16 +27,20 @@ class SettingsActivity : AppCompatActivity() {
         autostart.isChecked = cfg.autoStart
 
         save.setOnClickListener {
-            Prefs.save(
-                this,
-                StreamConfig(
-                    url = urlInput.text.toString(),
-                    preferTcp = transportGroup.checkedRadioButtonId == R.id.radio_tcp,
-                    reconnectSeconds = reconnectInput.text.toString().toIntOrNull() ?: 3,
-                    autoStart = autostart.isChecked,
+            try {
+                Prefs.save(
+                    this,
+                    StreamConfig(
+                        url = urlInput.text.toString(),
+                        preferTcp = transportGroup.checkedRadioButtonId == R.id.radio_tcp,
+                        reconnectSeconds = reconnectInput.text.toString().toIntOrNull() ?: 3,
+                        autoStart = autostart.isChecked,
+                    )
                 )
-            )
-            finish()
+                finish()
+            } catch (e: IllegalArgumentException) {
+                Toast.makeText(this, e.message, Toast.LENGTH_LONG).show()
+            }
         }
     }
 }

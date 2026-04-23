@@ -59,10 +59,9 @@ PREFS="<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>
 
 echo "→ Pushing prefs..."
 adb -s "$DEVICE" shell "am force-stop $PKG"
-adb -s "$DEVICE" shell "rm -f /data/local/tmp/blueiris-viewer.xml"
-echo "$PREFS" | adb -s "$DEVICE" shell "cat > /data/local/tmp/blueiris-viewer.xml"
-adb -s "$DEVICE" shell "run-as $PKG sh -c 'mkdir -p shared_prefs && cp /data/local/tmp/blueiris-viewer.xml shared_prefs/blueiris-viewer.xml'"
-adb -s "$DEVICE" shell "rm /data/local/tmp/blueiris-viewer.xml"
+# Pipe prefs straight into run-as — avoids staging the password in
+# world-readable /data/local/tmp.
+printf '%s' "$PREFS" | adb -s "$DEVICE" shell "run-as $PKG sh -c 'mkdir -p shared_prefs && cat > shared_prefs/blueiris-viewer.xml'"
 
 echo "→ Launching..."
 adb -s "$DEVICE" shell "am start -n $PKG/.PlayerActivity"
