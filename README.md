@@ -189,8 +189,11 @@ Prefs file on device: `/data/data/com.hareesh.blueirisviewer/shared_prefs/blueir
 
 ## TODO (future work)
 
-- D-pad settings entry for Android TV (3-second overlay button on startup)
 - Multiple stream URLs with D-pad / swipe to switch cameras
 - PTZ controls via BlueIris JSON API (`/admin?camera=X&ptz=N`)
-- Signed release APK so Android TV stops warning on sideload
+- Snapshot-on-tap saving to device Downloads
 - Auto-update pipeline (F-Droid repo or direct APK URL)
+
+## License
+
+MIT — see [LICENSE](LICENSE). Free to use, modify, and redistribute; no warranty. Contributions welcome.
